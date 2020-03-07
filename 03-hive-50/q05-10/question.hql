@@ -39,4 +39,39 @@ LOAD DATA LOCAL INPATH 'tbl1.csv' INTO TABLE tbl1;
 --
 -- >>> Escriba su respuesta a partir de este punto <<<
 --
+DROP TABLE IF EXISTS dataTable; 
+CREATE TABLE dataTable (fecha STRING, letra ARRAY<CHAR(1)>);
+INSERT OVERWRITE TABLE dataTable 
+SELECT 
+    SUBSTR(c4, 1, 4) AS fecha,
+    c5 AS letra
+FROM
+    tbl0;
+    
+DROP TABLE IF EXISTS wordCount; 
+CREATE TABLE wordCount (year STRING, clave STRING);
+INSERT OVERWRITE TABLE wordCount 
+SELECT
+    fecha,
+    let
+FROM
+    dataTable
+LATERAL VIEW
+    explode(letra) dataTable AS let;  
+    
 
+DROP TABLE IF EXISTS word_counts_2;
+CREATE TABLE word_counts_2
+AS
+    SELECT year, clave, count(1) AS count
+    FROM
+        wordCount
+GROUP BY
+    year, clave;  
+
+INSERT OVERWRITE DIRECTORY '/tmp/output'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+
+SELECT * FROM word_counts_2;
+
+!hadoop fs -copyToLocal /tmp/output output

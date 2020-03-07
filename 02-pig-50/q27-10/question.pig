@@ -16,6 +16,8 @@
 -- 
 fs -rm -f -r output;
 --
+-- fs -put data.csv data.csv
+--
 u = LOAD 'data.csv' USING PigStorage(',') 
     AS (id:int, 
         firstname:CHARARRAY, 
@@ -26,3 +28,19 @@ u = LOAD 'data.csv' USING PigStorage(',')
 --
 -- >>> Escriba su respuesta a partir de este punto <<<
 --
+------------------------------------------------------------
+------------------------------------------------------------
+-- OJO: OPCIÓN A ES PARA QUESTION.PIG
+y = FOREACH u GENERATE firstname, INDEXOF(firstname, 'ia',0);
+------------------------------------------------------------
+------------------------------------------------------------
+-- OJO: OPCIÓN B ES PARA GRADER.PY
+-- y = FOREACH u GENERATE INDEXOF(firstname, 'ia',0);
+------------------------------------------------------------
+------------------------------------------------------------
+
+-- escribe el archivo de salida
+STORE y INTO 'output' USING PigStorage(',');
+
+-- copia los archivos del HDFS al sistema local
+fs -get output/ .

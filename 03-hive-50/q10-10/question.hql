@@ -24,3 +24,26 @@ LOAD DATA LOCAL INPATH 'data.tsv' INTO TABLE t0;
 -- >>> Escriba su respuesta a partir de este punto <<<
 --
 
+DROP TABLE IF EXISTS dataTable; 
+CREATE TABLE dataTable (clave STRING, valor INT);
+INSERT OVERWRITE TABLE dataTable 
+SELECT explode(c3) FROM t0;
+
+DROP TABLE IF EXISTS word_counts;
+CREATE TABLE word_counts
+AS
+    SELECT word,count(1) AS count
+    FROM
+        (SELECT clave AS word FROM dataTable) w
+GROUP BY
+    word
+ORDER BY
+    word;
+    
+    
+INSERT OVERWRITE DIRECTORY '/tmp/output'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+
+SELECT * FROM word_counts;
+
+!hadoop fs -copyToLocal /tmp/output output

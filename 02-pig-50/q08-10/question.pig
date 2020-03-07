@@ -14,3 +14,26 @@ fs -rm -f -r output;
 --
 -- >>> Escriba su respuesta a partir de este punto <<<
 --
+
+-- Gestion de archivos del sistema local al HDFS
+fs -rm -f -r input
+fs -mkdir input
+fs -put data.tsv input/data.tsv
+
+-- carga de datos
+lines = LOAD 'input/data.tsv' AS (clave:CHARARRAY, reg1:BAG{t:(p:CHARARRAY)}, reg2:MAP[]);
+
+-- genera una tabla llamada words con una palabra por registro
+words = FOREACH lines GENERATE FLATTEN(reg1) AS (p:CHARARRAY), FLATTEN(reg2) AS (q:CHARARRAY, r:INT);
+
+-- agrupa los registros que tienen la misma palabra
+grouped = GROUP words BY (p,q);
+
+-- genera una variable que cuenta las ocurrencias por cada grupo
+wordcount = FOREACH grouped GENERATE group, COUNT(words);
+
+-- escribe el archivo de salida
+STORE wordcount INTO 'output' USING PigStorage('\t');
+
+-- copia los archivos del HDFS al sistema local
+fs -get output/ .

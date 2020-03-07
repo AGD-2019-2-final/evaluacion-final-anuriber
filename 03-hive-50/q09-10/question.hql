@@ -39,3 +39,36 @@ LOAD DATA LOCAL INPATH 'tbl1.csv' INTO TABLE tbl1;
 --
 -- >>> Escriba su respuesta a partir de este punto <<<
 --
+DROP TABLE IF EXISTS dataT; 
+CREATE TABLE dataT (num INT, clave STRING, valor INT);
+INSERT OVERWRITE TABLE dataT
+SELECT
+    c1,
+    clave,
+    valor
+FROM
+    tbl1
+LATERAL VIEW
+    explode(c4) tbl1 AS clave,valor;
+    
+INSERT OVERWRITE DIRECTORY '/tmp/output'
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+
+SELECT
+    d.c1,
+    d.c2,
+    t.valor
+FROM
+    tbl0 d
+JOIN (
+    SELECT
+        num,
+        clave,
+        valor
+    FROM
+        dataT
+    ) t
+ON
+    (d.c2 = t.clave AND d.c1 = t.num);
+   
+!hadoop fs -copyToLocal /tmp/output output

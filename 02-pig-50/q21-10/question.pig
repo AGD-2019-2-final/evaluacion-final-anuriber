@@ -17,7 +17,9 @@
 -- Escriba el resultado a la carpeta `output` del directorio actual.
 -- 
 fs -rm -f -r output;
--- 
+--
+-- fs -put data.csv data.csv
+--
 u = LOAD 'data.csv' USING PigStorage(',') 
     AS (id:int, 
         firstname:CHARARRAY, 
@@ -28,4 +30,12 @@ u = LOAD 'data.csv' USING PigStorage(',')
 --
 -- >>> Escriba su respuesta a partir de este punto <<<
 --
+x = FOREACH u GENERATE firstname, color;
+y = FILTER x BY (color MATCHES 'blue' OR color MATCHES 'green');
+
+-- escribe el archivo de salida
+STORE y INTO 'output' USING PigStorage('\t');
+
+-- copia los archivos del HDFS al sistema local
+fs -get output/ .
 
